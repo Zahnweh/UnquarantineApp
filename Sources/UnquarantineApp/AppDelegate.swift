@@ -36,8 +36,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = statusItem.button else { return }
 
-        // _Template suffix makes AppKit auto-apply light/dark tinting
-        button.image = NSImage(named: "icon_tray_Template")
+        // 36×36px PNG is the @2x asset — set logical size to 18pt so it renders crisp on Retina
+        if let icon = NSImage(named: "icon_tray_Template") {
+            icon.size = NSSize(width: 18, height: 18)
+            button.image = icon
+        }
 
         button.action = #selector(handleClick(_:))
         button.target = self
