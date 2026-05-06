@@ -1,16 +1,17 @@
 import AppKit
+import Darwin
 
 enum QuarantineRemover {
 
     static func process(url: URL, recursive: Bool, removeMetadata: Bool, extract: Bool) -> String {
         let name = url.lastPathComponent
 
-        let (ok, err) = runXattr(attribute: "com.apple.quarantine", url: url, recursive: recursive)
+        let (ok, err) = removeAttribute("com.apple.quarantine", at: url, recursive: recursive)
         guard ok else { return "✗  \(name)\(err.isEmpty ? "" : ": \(err)")" }
 
         if removeMetadata {
-            _ = runXattr(attribute: "com.apple.metadata:kMDItemWhereFroms", url: url, recursive: recursive)
-            _ = runXattr(attribute: "com.apple.metadata:kMDItemDownloadedDate", url: url, recursive: recursive)
+            _ = removeAttribute("com.apple.metadata:kMDItemWhereFroms", at: url, recursive: recursive)
+            _ = removeAttribute("com.apple.metadata:kMDItemDownloadedDate", at: url, recursive: recursive)
         }
 
         if extract {
@@ -20,28 +21,32 @@ enum QuarantineRemover {
         return "✓  \(name)"
     }
 
-    static func runXattr(attribute: String, url: URL, recursive: Bool) -> (ok: Bool, error: String) {
-        var args = ["-d"]
-        if recursive { args.append("-r") }
-        args += [attribute, url.path]
+    private static func removeAttribute(_ attrName: String, at url: URL, recursive: Bool) -> (ok: Bool, error: String) {
+        let (rootOK, rootErr) = stripXattr(attrName, from: url)
 
-        let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/xattr")
-        proc.arguments = args
-        proc.standardOutput = Pipe()
-        let errPipe = Pipe()
-        proc.standardError = errPipe
-
-        do {
-            try proc.run()
-            proc.waitUntilExit()
-            if proc.terminationStatus == 0 { return (true, "") }
-            let errStr = String(data: errPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
-                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            if errStr.contains("No such xattr") { return (true, "") }
-            return (false, errStr)
-        } catch {
-            return (false, error.localizedDescription)
+        if recursive {
+            guard let enumerator = FileManager.default.enumerator(
+                at: url,
+                includingPropertiesForKeys: [.isSymbolicLinkKey],
+                options: []
+            ) else { return (rootOK, rootErr) }
+            for case let child as URL in enumerator {
+                _ = stripXattr(attrName, from: child)
+            }
         }
+
+        return (rootOK, rootErr)
+    }
+
+    private static func stripXattr(_ name: String, from url: URL) -> (ok: Bool, error: String) {
+        let path = url.path
+        let result = path.withCString { cPath -> Int32 in
+            name.withCString { cName -> Int32 in
+                removexattr(cPath, cName, 0)
+            }
+        }
+        if result == 0 { return (true, "") }
+        if errno == ENOATTR { return (true, "") }  // attribute didn't exist — fine
+        return (false, String(cString: strerror(errno)))
     }
 }

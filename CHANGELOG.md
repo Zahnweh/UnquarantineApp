@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2] – 2026-05-06
+
+### Bugfix
+- Quarantäne-Entfernung funktioniert jetzt zuverlässig: `removexattr()` Syscall direkt statt `xattr`-Subprocess. macOS Sequoia blockierte den Subprocess via TCC, wenn Dateien aus geschützten Ordnern (Desktop, Downloads) verarbeitet wurden.
+
 ## [1.1] – 2026-05-06
 
 ### Neu
