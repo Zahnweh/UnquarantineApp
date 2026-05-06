@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1] – geplant
+
+### Neu
+- Menüleisten-App: kein Dock-Icon mehr, Drop-Zone als Popover (Linksklick)
+- Rechtsklick auf Menüleisten-Icon: Kontextmenü mit Über, Updates, Login-Option, Beenden
+- „Beim Login starten" direkt im Menü
+- Finder-Dienst: Rechtsklick auf beliebige Datei/Ordner → Dienste → **Unquarantine** oder **Unquarantine + Entpacken**
+- xattr-Logik in `QuarantineRemover` ausgelagert (gemeinsam genutzt von Popover und Finder-Dienst)
+
 ## [1.0] – 2026-05-06
 
 Erste Veröffentlichung.
