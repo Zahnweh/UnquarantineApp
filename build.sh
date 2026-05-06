@@ -1,13 +1,15 @@
 #!/bin/bash
 set -e
 
-echo "Building UnquarantineApp..."
+VERSION="1.0"
+
+echo "Building Unquarantine $VERSION..."
 swift build -c release
 
 APP_BUNDLE="Unquarantine.app"
 DMG_RW="Unquarantine_rw.dmg"
 DMG_NAME="Unquarantine.dmg"
-MOUNT="/Volumes/Unquarantine_build"
+MOUNT=$(mktemp -d)
 
 # --- .app bundle ---
 rm -rf "$APP_BUNDLE"
@@ -17,7 +19,7 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 cp .build/release/UnquarantineApp "$APP_BUNDLE/Contents/MacOS/Unquarantine"
 cp UnQuarantine.icns "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 
-cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
+cat > "$APP_BUNDLE/Contents/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -33,7 +35,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>${VERSION}</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSPrincipalClass</key>
@@ -45,21 +47,16 @@ PLIST
 # --- DMG ---
 rm -f "$DMG_RW" "$DMG_NAME"
 
-# Schritt 1: beschreibbares DMG anlegen
 hdiutil create -size 100m -volname "Unquarantine" -fs HFS+ -o "$DMG_RW"
-
-# Schritt 2: mounten
 hdiutil attach -readwrite -noverify -noautoopen -mountpoint "$MOUNT" "$DMG_RW"
 
-# Schritt 3: Inhalte kopieren
 ditto "$APP_BUNDLE" "$MOUNT/$APP_BUNDLE"
 ln -s /Applications "$MOUNT/Applications"
 cp UnQuarantine.icns "$MOUNT/.VolumeIcon.icns"
 
-# Schritt 4: unmounten
 hdiutil detach "$MOUNT"
+rmdir "$MOUNT"
 
-# Schritt 5: in komprimiertes read-only DMG konvertieren
 hdiutil convert "$DMG_RW" -format UDZO -o "$DMG_NAME"
 rm -f "$DMG_RW"
 rm -rf "$APP_BUNDLE"
