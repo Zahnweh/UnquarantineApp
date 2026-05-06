@@ -44,14 +44,21 @@ final class DropZoneView: NSView {
         hintLabel.alignment = .center
         hintLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        recursiveCheckbox.state = .on
+        let ud = UserDefaults.standard
+        recursiveCheckbox.state = ud.object(forKey: "chk.recursive") == nil ? .on : (ud.bool(forKey: "chk.recursive") ? .on : .off)
         recursiveCheckbox.font = .systemFont(ofSize: 12)
+        recursiveCheckbox.target = self
+        recursiveCheckbox.action = #selector(saveCheckboxStates)
 
-        metadataCheckbox.state = .on
+        metadataCheckbox.state = ud.object(forKey: "chk.metadata") == nil ? .on : (ud.bool(forKey: "chk.metadata") ? .on : .off)
         metadataCheckbox.font = .systemFont(ofSize: 12)
+        metadataCheckbox.target = self
+        metadataCheckbox.action = #selector(saveCheckboxStates)
 
-        extractCheckbox.state = .off
+        extractCheckbox.state = ud.bool(forKey: "chk.extract") ? .on : .off
         extractCheckbox.font = .systemFont(ofSize: 12)
+        extractCheckbox.target = self
+        extractCheckbox.action = #selector(saveCheckboxStates)
 
         let checkboxStack = NSStackView(views: [recursiveCheckbox, metadataCheckbox, extractCheckbox])
         checkboxStack.orientation = .vertical
@@ -157,6 +164,13 @@ final class DropZoneView: NSView {
             }
         }
         return true
+    }
+
+    @objc private func saveCheckboxStates() {
+        let ud = UserDefaults.standard
+        ud.set(recursiveCheckbox.state == .on, forKey: "chk.recursive")
+        ud.set(metadataCheckbox.state == .on,  forKey: "chk.metadata")
+        ud.set(extractCheckbox.state == .on,   forKey: "chk.extract")
     }
 
     private func canAccept(_ sender: NSDraggingInfo) -> Bool {
