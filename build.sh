@@ -62,5 +62,6 @@ hdiutil detach "$MOUNT"
 # Schritt 5: in komprimiertes read-only DMG konvertieren
 hdiutil convert "$DMG_RW" -format UDZO -o "$DMG_NAME"
 rm -f "$DMG_RW"
+rm -rf "$APP_BUNDLE"
 
 echo "✓ ${DMG_NAME} erfolgreich erstellt"
