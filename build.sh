@@ -5,6 +5,10 @@ echo "Building UnquarantineApp..."
 swift build -c release
 
 APP_BUNDLE="Unquarantine.app"
+DMG_NAME="Unquarantine.dmg"
+STAGING=".dmg_staging"
+
+# --- .app bundle ---
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_BUNDLE/Contents/MacOS"
 mkdir -p "$APP_BUNDLE/Contents/Resources"
@@ -37,4 +41,21 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
 </plist>
 PLIST
 
-echo "✓ ${APP_BUNDLE} erfolgreich gebaut"
+# --- DMG ---
+rm -rf "$STAGING" "$DMG_NAME"
+mkdir -p "$STAGING"
+
+cp -r "$APP_BUNDLE" "$STAGING/"
+ln -s /Applications "$STAGING/Applications"
+cp UnQuarantine.icns "$STAGING/.VolumeIcon.icns"
+
+hdiutil create \
+    -volname "Unquarantine" \
+    -srcfolder "$STAGING" \
+    -ov \
+    -format UDZO \
+    "$DMG_NAME"
+
+rm -rf "$STAGING"
+
+echo "✓ ${DMG_NAME} erfolgreich erstellt"
