@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1] – geplant
+## [1.1] – 2026-05-06
 
 ### Neu
 - Menüleisten-Icon mit Drop-Zone als Popover (Linksklick), eigenes Icon aus App-Iconset
