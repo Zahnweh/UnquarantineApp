@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
+    private var mainWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupPopover()
@@ -12,6 +13,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupAppMenu()
         NSApp.servicesProvider = self
         NSUpdateDynamicServices()
+        if !UserDefaults.standard.bool(forKey: "runInBackground") {
+            showMainWindow()
+        }
         Updater.checkOnLaunch()
     }
 
@@ -32,14 +36,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = statusItem.button else { return }
 
-        if let icon = NSImage(named: "MenuBarIcon") {
-            icon.isTemplate = true
-            button.image = icon
-        } else {
-            let img = NSImage(systemSymbolName: "lock.slash", accessibilityDescription: "Unquarantine")
-            img?.isTemplate = true
-            button.image = img
-        }
+        // _Template suffix makes AppKit auto-apply light/dark tinting
+        button.image = NSImage(named: "icon_tray_Template")
 
         button.action = #selector(handleClick(_:))
         button.target = self
@@ -63,6 +61,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appMenu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         NSApp.mainMenu = mainMenu
+    }
+
+    // MARK: - Main Window
+
+    private func showMainWindow() {
+        if mainWindow == nil {
+            let win = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 340, height: 340),
+                styleMask: [.titled, .closable, .miniaturizable],
+                backing: .buffered,
+                defer: false
+            )
+            win.title = "Unquarantine"
+            win.center()
+            win.isReleasedWhenClosed = false
+            win.contentView = DropZoneView(size: NSSize(width: 340, height: 340))
+            mainWindow = win
+        }
+        if #available(macOS 14.0, *) { NSApp.activate() } else { NSApp.activate(ignoringOtherApps: true) }
+        mainWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        if !hasVisibleWindows { showMainWindow() }
+        return true
     }
 
     // MARK: - Status Item

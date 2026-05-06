@@ -18,8 +18,7 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 
 cp .build/release/UnquarantineApp "$APP_BUNDLE/Contents/MacOS/Unquarantine"
 cp UnQuarantine.icns "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
-cp MenuBarIcon.png "$APP_BUNDLE/Contents/Resources/MenuBarIcon.png"
-cp "MenuBarIcon@2x.png" "$APP_BUNDLE/Contents/Resources/MenuBarIcon@2x.png"
+cp icon_tray_Template.png "$APP_BUNDLE/Contents/Resources/icon_tray_Template.png"
 
 cat > "$APP_BUNDLE/Contents/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
