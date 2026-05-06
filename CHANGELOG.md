@@ -3,9 +3,11 @@
 ## [1.1] – geplant
 
 ### Neu
-- Menüleisten-App: kein Dock-Icon mehr, Drop-Zone als Popover (Linksklick)
-- Rechtsklick auf Menüleisten-Icon: Kontextmenü mit Über, Updates, Login-Option, Beenden
-- „Beim Login starten" direkt im Menü
+- Menüleisten-Icon mit Drop-Zone als Popover (Linksklick), eigenes Icon aus App-Iconset
+- Rechtsklick auf Menüleisten-Icon: Kontextmenü mit Über, Updates, Einstellungen, Beenden
+- App-Menü mit Über, Einstellungen… (Cmd+,) und Beenden
+- Einstellungen-Fenster (Cmd+,): „Im Hintergrund ausführen" und „Beim Login starten"
+- Dock-Icon standardmäßig sichtbar; „Im Hintergrund ausführen" versteckt es
 - Finder-Dienst: Rechtsklick auf beliebige Datei/Ordner → Dienste → **Unquarantine** oder **Unquarantine + Entpacken**
 - xattr-Logik in `QuarantineRemover` ausgelagert (gemeinsam genutzt von Popover und Finder-Dienst)
 

@@ -9,7 +9,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupPopover()
         setupStatusItem()
+        setupAppMenu()
         NSApp.servicesProvider = self
+        NSUpdateDynamicServices()
         Updater.checkOnLaunch()
     }
 
@@ -30,12 +32,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = statusItem.button else { return }
 
-        let img = NSImage(systemSymbolName: "lock.slash", accessibilityDescription: "Unquarantine")
-        img?.isTemplate = true
-        button.image = img
+        if let icon = NSImage(named: "MenuBarIcon") {
+            icon.isTemplate = true
+            button.image = icon
+        } else {
+            let img = NSImage(systemSymbolName: "lock.slash", accessibilityDescription: "Unquarantine")
+            img?.isTemplate = true
+            button.image = img
+        }
+
         button.action = #selector(handleClick(_:))
         button.target = self
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+    }
+
+    private func setupAppMenu() {
+        let mainMenu = NSMenu()
+
+        let appMenuItem = NSMenuItem()
+        mainMenu.addItem(appMenuItem)
+        let appMenu = NSMenu()
+        appMenuItem.submenu = appMenu
+
+        appMenu.addItem(NSMenuItem(title: "Über Unquarantine", action: #selector(showAbout), keyEquivalent: ""))
+        appMenu.addItem(.separator())
+        let settingsItem = NSMenuItem(title: "Einstellungen…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.keyEquivalentModifierMask = .command
+        appMenu.addItem(settingsItem)
+        appMenu.addItem(.separator())
+        appMenu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+
+        NSApp.mainMenu = mainMenu
     }
 
     // MARK: - Status Item
@@ -69,11 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Über Unquarantine", action: #selector(showAbout), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Auf Updates prüfen…", action: #selector(checkUpdates), keyEquivalent: ""))
         menu.addItem(.separator())
-
-        let loginItem = NSMenuItem(title: "Beim Login starten", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
-        loginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
-        menu.addItem(loginItem)
-
+        menu.addItem(NSMenuItem(title: "Einstellungen…", action: #selector(openSettings), keyEquivalent: ""))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
@@ -101,16 +124,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Updater.checkManually()
     }
 
-    @objc private func toggleLaunchAtLogin() {
-        do {
-            if SMAppService.mainApp.status == .enabled {
-                try SMAppService.mainApp.unregister()
-            } else {
-                try SMAppService.mainApp.register()
-            }
-        } catch {
-            // Schlägt fehl wenn die App nicht in /Programme liegt – kein Dialog nötig
-        }
+    @objc func openSettings() {
+        SettingsWindowController.shared.showAndFocus()
     }
 
     // MARK: - Finder-Dienste
