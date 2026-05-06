@@ -4,3 +4,4 @@
 *.d
 Unquarantine.app/
 Unquarantine.dmg
+*.DS_Store
