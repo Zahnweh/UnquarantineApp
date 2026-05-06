@@ -5,8 +5,9 @@ echo "Building UnquarantineApp..."
 swift build -c release
 
 APP_BUNDLE="Unquarantine.app"
+DMG_RW="Unquarantine_rw.dmg"
 DMG_NAME="Unquarantine.dmg"
-STAGING=".dmg_staging"
+MOUNT="/Volumes/Unquarantine_build"
 
 # --- .app bundle ---
 rm -rf "$APP_BUNDLE"
@@ -42,20 +43,24 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
 PLIST
 
 # --- DMG ---
-rm -rf "$STAGING" "$DMG_NAME"
-mkdir -p "$STAGING"
+rm -f "$DMG_RW" "$DMG_NAME"
 
-cp -r "$APP_BUNDLE" "$STAGING/"
-ln -s /Applications "$STAGING/Applications"
-cp UnQuarantine.icns "$STAGING/.VolumeIcon.icns"
+# Schritt 1: beschreibbares DMG anlegen
+hdiutil create -size 100m -volname "Unquarantine" -fs HFS+ -o "$DMG_RW"
 
-hdiutil create \
-    -volname "Unquarantine" \
-    -srcfolder "$STAGING" \
-    -ov \
-    -format UDZO \
-    "$DMG_NAME"
+# Schritt 2: mounten
+hdiutil attach -readwrite -noverify -noautoopen -mountpoint "$MOUNT" "$DMG_RW"
 
-rm -rf "$STAGING"
+# Schritt 3: Inhalte kopieren
+ditto "$APP_BUNDLE" "$MOUNT/$APP_BUNDLE"
+ln -s /Applications "$MOUNT/Applications"
+cp UnQuarantine.icns "$MOUNT/.VolumeIcon.icns"
+
+# Schritt 4: unmounten
+hdiutil detach "$MOUNT"
+
+# Schritt 5: in komprimiertes read-only DMG konvertieren
+hdiutil convert "$DMG_RW" -format UDZO -o "$DMG_NAME"
+rm -f "$DMG_RW"
 
 echo "✓ ${DMG_NAME} erfolgreich erstellt"
