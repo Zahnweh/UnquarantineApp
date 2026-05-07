@@ -56,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appMenuItem.submenu = appMenu
 
         appMenu.addItem(NSMenuItem(title: "Über Unquarantine", action: #selector(showAbout), keyEquivalent: ""))
+        appMenu.addItem(NSMenuItem(title: "Auf Updates prüfen…", action: #selector(checkUpdates), keyEquivalent: ""))
         appMenu.addItem(.separator())
         let settingsItem = NSMenuItem(title: "Einstellungen…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.keyEquivalentModifierMask = .command

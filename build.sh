@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="1.2"
+VERSION="1.3"
 
 echo "Building Unquarantine $VERSION..."
 swift build -c release
