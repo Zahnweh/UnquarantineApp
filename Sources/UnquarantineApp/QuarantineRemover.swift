@@ -24,11 +24,23 @@ enum QuarantineRemover {
         }
 
         if extract {
-            if url.pathExtension.lowercased() == "zip" {
-                let destination = url.deletingLastPathComponent()
+            let lowercasedPath = url.path.lowercased()
+            let ext = url.pathExtension.lowercased()
+            let destination = url.deletingLastPathComponent()
+
+            if ext == "zip" {
                 let proc = Process()
                 proc.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
                 proc.arguments = ["-xk", "--noqtn", url.path, destination.path]
+                if (try? proc.run()) != nil { proc.waitUntilExit() }
+                DispatchQueue.main.async { NSWorkspace.shared.open(destination) }
+            } else if ext == "tar"
+                        || lowercasedPath.hasSuffix(".tar.gz")  || lowercasedPath.hasSuffix(".tgz")
+                        || lowercasedPath.hasSuffix(".tar.bz2") || lowercasedPath.hasSuffix(".tbz")
+                        || lowercasedPath.hasSuffix(".tar.xz")  || lowercasedPath.hasSuffix(".txz") {
+                let proc = Process()
+                proc.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+                proc.arguments = ["xf", url.path, "-C", destination.path]
                 if (try? proc.run()) != nil { proc.waitUntilExit() }
                 DispatchQueue.main.async { NSWorkspace.shared.open(destination) }
             } else {

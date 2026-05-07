@@ -3,7 +3,7 @@ import Foundation
 
 enum Updater {
 
-    static let version = "1.3"
+    static let version = "1.4"
 
     private static let apiURL = URL(string: "https://api.github.com/repos/Zahnweh/UnquarantineApp/releases/latest")!
 
